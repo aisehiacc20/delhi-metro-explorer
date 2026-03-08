@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { StationSelect } from '@/components/StationSelect';
 import { RouteDisplay } from '@/components/RouteDisplay';
 import { MetroMap } from '@/components/MetroMap';
+import { MetroMapImage } from '@/components/MetroMapImage';
 import { LineColors } from '@/components/LineColors';
 import { findShortestRoute } from '@/lib/dijkstra';
 import { MetroLine } from '@/data/metroData';
@@ -158,8 +159,11 @@ const Index = () => {
           </div>
         )}
 
-        {/* Line Colors Reference */}
-        <div className="mt-6">
+        {/* Line Colors Reference + Map Button */}
+        <div className="mt-6 space-y-4">
+          <div className="flex justify-center">
+            <MetroMapImage />
+          </div>
           <LineColors />
         </div>
 
