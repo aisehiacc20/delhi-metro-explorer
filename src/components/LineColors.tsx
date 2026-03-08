@@ -1,23 +1,27 @@
 import { metroLines } from '@/data/metroData';
 
-export const LineColors = () => (
-  <div className="py-6">
-    <p className="text-xs text-muted-foreground/50 uppercase tracking-widest mb-4 text-center">
-      Lines
-    </p>
-    <div className="flex flex-wrap justify-center gap-3">
-      {metroLines.map((line) => (
-        <div
-          key={line.id}
-          className="flex items-center gap-2 text-xs text-muted-foreground"
-        >
+export const LineColors = () => {
+  return (
+    <div className="glass-card p-4">
+      <h3 className="text-sm font-medium text-muted-foreground mb-3">Metro Lines</h3>
+      <div className="flex flex-wrap gap-2">
+        {metroLines.map((line) => (
           <div
-            className="w-2 h-2 rounded-full"
-            style={{ backgroundColor: line.color }}
-          />
-          <span>{line.name}</span>
-        </div>
-      ))}
+            key={line.id}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-transform hover:scale-105"
+            style={{ 
+              backgroundColor: `${line.color}20`,
+              color: line.color
+            }}
+          >
+            <div 
+              className="w-2.5 h-2.5 rounded-full"
+              style={{ backgroundColor: line.color }}
+            />
+            {line.name}
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};

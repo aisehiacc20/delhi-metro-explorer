@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { Search, ArrowDownUp, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/Header';
 import { StationSelect } from '@/components/StationSelect';
@@ -18,110 +18,155 @@ interface RouteResult {
 }
 
 const Index = () => {
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [result, setResult] = useState<RouteResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [fromStation, setFromStation] = useState<string>('');
+  const [toStation, setToStation] = useState<string>('');
+  const [routeResult, setRouteResult] = useState<RouteResult | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const search = useCallback(() => {
-    if (!from || !to) {
-      toast.error('Select both stations');
-      return;
-    }
-    if (from === to) {
-      toast.error('Select different stations');
+  const handleSearch = useCallback(() => {
+    if (!fromStation || !toStation) {
+      toast.error('Please select both stations');
       return;
     }
 
-    setLoading(true);
+    if (fromStation === toStation) {
+      toast.error('Please select different stations');
+      return;
+    }
+
+    setIsSearching(true);
+    
+    // Simulate brief loading for UX
     setTimeout(() => {
-      const route = findShortestRoute(from, to);
-      if (route) {
-        setResult(route);
+      const result = findShortestRoute(fromStation, toStation);
+      
+      if (result) {
+        setRouteResult(result);
+        toast.success(`Route found! ${result.route.length} stations, ${result.totalTime} minutes`);
       } else {
-        toast.error('No route found');
-        setResult(null);
+        toast.error('No route found between these stations');
+        setRouteResult(null);
       }
-      setLoading(false);
-    }, 200);
-  }, [from, to]);
+      
+      setIsSearching(false);
+    }, 300);
+  }, [fromStation, toStation]);
 
-  const swap = () => {
-    setFrom(to);
-    setTo(from);
-    setResult(null);
-  };
+  const handleSwap = useCallback(() => {
+    setFromStation(toStation);
+    setToStation(fromStation);
+    setRouteResult(null);
+  }, [fromStation, toStation]);
 
-  const reset = () => {
-    setFrom('');
-    setTo('');
-    setResult(null);
-  };
+  const handleReset = useCallback(() => {
+    setFromStation('');
+    setToStation('');
+    setRouteResult(null);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-xl mx-auto px-4 py-8">
+      {/* SEO Meta */}
+      <title>Delhi Metro Route Finder - Find the Fastest Route</title>
+      <meta name="description" content="Find the shortest and fastest route between any two Delhi Metro stations. Supports all 10 lines including Red, Yellow, Blue, Green, Violet, Pink, Magenta, Grey, Orange, and Aqua lines." />
+
+      <div className="container max-w-4xl mx-auto px-4 py-6">
         <Header />
 
-        {/* Search */}
-        <div className="space-y-4 mt-8">
-          <StationSelect
-            value={from}
-            onChange={setFrom}
-            placeholder="Departure"
-            label="From"
-          />
-
-          <div className="flex justify-center">
-            <button
-              onClick={swap}
-              disabled={!from && !to}
-              className="p-2 rounded-full text-muted-foreground/50 hover:text-muted-foreground hover:bg-secondary/50 transition-colors disabled:opacity-30"
+        {/* Search Section */}
+        <div className="glass-card p-6 mt-6 space-y-6">
+          <div className="grid md:grid-cols-[1fr,auto,1fr] gap-4 items-end">
+            <StationSelect
+              value={fromStation}
+              onChange={setFromStation}
+              placeholder="Select departure station"
+              label="From"
+              icon="from"
+            />
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSwap}
+              className="hidden md:flex h-14 w-14 rounded-full border border-border/50 hover:bg-primary/10 hover:border-primary/50 transition-all"
+              disabled={!fromStation && !toStation}
             >
-              <ArrowUpDown className="w-4 h-4" />
-            </button>
+              <ArrowDownUp className="h-5 w-5" />
+            </Button>
+
+            <StationSelect
+              value={toStation}
+              onChange={setToStation}
+              placeholder="Select destination station"
+              label="To"
+              icon="to"
+            />
           </div>
 
-          <StationSelect
-            value={to}
-            onChange={setTo}
-            placeholder="Destination"
-            label="To"
-          />
-
-          <div className="flex gap-2 pt-4">
+          {/* Mobile Swap Button */}
+          <div className="flex md:hidden justify-center">
             <Button
-              onClick={search}
-              disabled={!from || !to || loading}
-              className="flex-1 h-11"
+              variant="outline"
+              size="sm"
+              onClick={handleSwap}
+              disabled={!fromStation && !toStation}
+              className="gap-2"
             >
-              {loading ? 'Finding...' : 'Find Route'}
+              <ArrowDownUp className="h-4 w-4" />
+              Swap Stations
             </Button>
-            {(from || to || result) && (
-              <Button variant="ghost" onClick={reset} className="h-11 px-4 text-muted-foreground">
-                Clear
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <Button
+              onClick={handleSearch}
+              disabled={!fromStation || !toStation || isSearching}
+              className="flex-1 h-12 text-lg font-semibold gap-2 bg-primary hover:bg-primary/90 transition-all"
+            >
+              {isSearching ? (
+                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
+              {isSearching ? 'Finding Route...' : 'Search Route'}
+            </Button>
+            
+            {(fromStation || toStation || routeResult) && (
+              <Button
+                variant="outline"
+                onClick={handleReset}
+                className="h-12 px-6 gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset
               </Button>
             )}
           </div>
         </div>
 
-        {/* Result */}
-        {result && (
-          <div className="mt-12 space-y-8">
-            <MetroMap route={result.route} />
+        {/* Route Result */}
+        {routeResult && (
+          <div className="mt-6 space-y-6">
+            <MetroMap route={routeResult.route} />
             <RouteDisplay
-              route={result.route}
-              totalTime={result.totalTime}
-              interchanges={result.interchanges}
-              fare={result.fare}
+              route={routeResult.route}
+              totalTime={routeResult.totalTime}
+              interchanges={routeResult.interchanges}
+              fare={routeResult.fare}
             />
           </div>
         )}
 
-        <LineColors />
+        {/* Line Colors Reference */}
+        <div className="mt-6">
+          <LineColors />
+        </div>
 
-        <footer className="mt-12 text-center text-xs text-muted-foreground/30 pb-8">
-          Delhi Metro Route Finder
+        {/* Footer */}
+        <footer className="mt-8 text-center text-sm text-muted-foreground/60 pb-6">
+          <p>Delhi Metro Route Finder • All {new Date().getFullYear()} metro lines included</p>
+          <p className="mt-1">Uses Dijkstra's algorithm for optimal route calculation</p>
         </footer>
       </div>
     </div>
