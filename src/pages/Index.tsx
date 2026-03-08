@@ -5,6 +5,7 @@ import { Header } from '@/components/Header';
 import { StationSelect } from '@/components/StationSelect';
 import { RouteDisplay } from '@/components/RouteDisplay';
 import { MetroMap } from '@/components/MetroMap';
+import { MetroMapImage } from '@/components/MetroMapImage';
 import { LineColors } from '@/components/LineColors';
 import { findShortestRoute } from '@/lib/dijkstra';
 import { MetroLine } from '@/data/metroData';
