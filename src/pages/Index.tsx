@@ -1,3 +1,12 @@
+/**
+ * Index Page - Main page of Delhi Metro Route Finder
+ * 
+ * This is the home page where users can:
+ * 1. Select departure and destination stations
+ * 2. Search for the shortest route
+ * 3. View the route details and map
+ */
+
 import { useState, useCallback } from 'react';
 import { Search, ArrowDownUp, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,6 +20,7 @@ import { findShortestRoute } from '@/lib/dijkstra';
 import { MetroLine } from '@/data/metroData';
 import { toast } from 'sonner';
 
+// Type for the route result
 interface RouteResult {
   route: { stationId: string; line: MetroLine; isInterchange: boolean }[];
   totalTime: number;
@@ -19,12 +29,17 @@ interface RouteResult {
 }
 
 const Index = () => {
+  // State for selected stations
   const [fromStation, setFromStation] = useState<string>('');
   const [toStation, setToStation] = useState<string>('');
+  
+  // State for search results
   const [routeResult, setRouteResult] = useState<RouteResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
+  // Handle search button click
   const handleSearch = useCallback(() => {
+    // Validate inputs
     if (!fromStation || !toStation) {
       toast.error('Please select both stations');
       return;
@@ -36,11 +51,11 @@ const Index = () => {
     }
 
     setIsSearching(true);
-    
-    // Simulate brief loading for UX
+
+    // Small delay for better UX
     setTimeout(() => {
       const result = findShortestRoute(fromStation, toStation);
-      
+
       if (result) {
         setRouteResult(result);
         toast.success(`Route found! ${result.route.length} stations, ${result.totalTime} minutes`);
@@ -48,17 +63,19 @@ const Index = () => {
         toast.error('No route found between these stations');
         setRouteResult(null);
       }
-      
+
       setIsSearching(false);
     }, 300);
   }, [fromStation, toStation]);
 
+  // Swap the from and to stations
   const handleSwap = useCallback(() => {
     setFromStation(toStation);
     setToStation(fromStation);
     setRouteResult(null);
   }, [fromStation, toStation]);
 
+  // Reset everything
   const handleReset = useCallback(() => {
     setFromStation('');
     setToStation('');
@@ -67,15 +84,20 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* SEO Meta */}
+      {/* Page Title for SEO */}
       <title>Delhi Metro Route Finder - Find the Fastest Route</title>
-      <meta name="description" content="Find the shortest and fastest route between any two Delhi Metro stations. Supports all 10 lines including Red, Yellow, Blue, Green, Violet, Pink, Magenta, Grey, Orange, and Aqua lines." />
+      <meta 
+        name="description" 
+        content="Find the shortest route between any two Delhi Metro stations. All 10 lines included." 
+      />
 
       <div className="container max-w-4xl mx-auto px-4 py-6">
         <Header />
 
         {/* Search Section */}
         <div className="glass-card p-6 mt-6 space-y-6">
+          
+          {/* Station Selection */}
           <div className="grid md:grid-cols-[1fr,auto,1fr] gap-4 items-end">
             <StationSelect
               value={fromStation}
@@ -84,12 +106,13 @@ const Index = () => {
               label="From"
               icon="from"
             />
-            
+
+            {/* Swap Button (desktop) */}
             <Button
               variant="ghost"
               size="icon"
               onClick={handleSwap}
-              className="hidden md:flex h-14 w-14 rounded-full border border-border/50 hover:bg-primary/10 hover:border-primary/50 transition-all"
+              className="hidden md:flex h-14 w-14 rounded-full border border-border/50 hover:bg-primary/10"
               disabled={!fromStation && !toStation}
             >
               <ArrowDownUp className="h-5 w-5" />
@@ -104,7 +127,7 @@ const Index = () => {
             />
           </div>
 
-          {/* Mobile Swap Button */}
+          {/* Swap Button (mobile) */}
           <div className="flex md:hidden justify-center">
             <Button
               variant="outline"
@@ -123,7 +146,7 @@ const Index = () => {
             <Button
               onClick={handleSearch}
               disabled={!fromStation || !toStation || isSearching}
-              className="flex-1 h-12 text-lg font-semibold gap-2 bg-primary hover:bg-primary/90 transition-all"
+              className="flex-1 h-12 text-lg font-semibold gap-2 bg-primary hover:bg-primary/90"
             >
               {isSearching ? (
                 <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -132,7 +155,8 @@ const Index = () => {
               )}
               {isSearching ? 'Finding Route...' : 'Search Route'}
             </Button>
-            
+
+            {/* Show reset button if anything is selected */}
             {(fromStation || toStation || routeResult) && (
               <Button
                 variant="outline"
@@ -146,7 +170,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Route Result */}
+        {/* Route Results */}
         {routeResult && (
           <div className="mt-6 space-y-6">
             <MetroMap route={routeResult.route} />
@@ -159,7 +183,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* Line Colors Reference + Map Button */}
+        {/* Metro Map Button & Line Colors */}
         <div className="mt-6 space-y-4">
           <div className="flex justify-center">
             <MetroMapImage />
