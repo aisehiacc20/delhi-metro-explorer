@@ -1,3 +1,9 @@
+/**
+ * MetroMap Component
+ * Draws an SVG visualization of the metro route
+ * Shows the path with colored lines and station dots
+ */
+
 import { useMemo } from 'react';
 import { getStationById, getLineColor, MetroLine } from '@/data/metroData';
 
@@ -13,35 +19,43 @@ interface MetroMapProps {
 }
 
 export const MetroMap = ({ route }: MetroMapProps) => {
-  // Calculate SVG points and path segments
+  
+  // Calculate all the points and paths for the SVG
   const mapData = useMemo(() => {
+    // Need at least 2 stations to draw a route
     if (route.length < 2) return null;
 
+    // SVG dimensions
     const width = 600;
     const height = 200;
     const padding = 40;
+    
+    // Calculate spacing between stations
     const stepX = (width - padding * 2) / (route.length - 1);
 
-    // Create points with slight wave pattern for visual interest
+    // Create point coordinates for each station
+    // Add slight wave pattern for visual interest
     const points = route.map((node, i) => ({
       x: padding + i * stepX,
       y: height / 2 + (i % 2 === 0 ? -15 : 15),
       ...node
     }));
 
-    // Group path segments by line color
+    // Group the path into segments by line color
     const segments: { line: MetroLine; path: string }[] = [];
     let currentLine = points[0].line;
     let currentPath = `M ${points[0].x} ${points[0].y}`;
 
+    // Build curved paths between stations
     for (let i = 1; i < points.length; i++) {
-      // Add curved line to next point
       const midX = (points[i - 1].x + points[i].x) / 2;
       const midY = (points[i - 1].y + points[i].y) / 2;
+      
+      // Quadratic curve for smooth lines
       currentPath += ` Q ${midX} ${points[i - 1].y} ${midX} ${midY}`;
       currentPath += ` T ${points[i].x} ${points[i].y}`;
 
-      // Start new segment when line changes
+      // Start new segment when line color changes
       if (points[i].line !== currentLine) {
         segments.push({ line: currentLine, path: currentPath });
         currentLine = points[i].line;
@@ -50,17 +64,21 @@ export const MetroMap = ({ route }: MetroMapProps) => {
         currentPath += ` T ${points[i].x} ${points[i].y}`;
       }
     }
+    
+    // Don't forget the last segment
     segments.push({ line: currentLine, path: currentPath });
 
     return { segments, points };
   }, [route]);
 
+  // Don't render if no data
   if (!mapData) return null;
 
   return (
     <div className="glass-card p-6 animate-fade-in">
       <h3 className="text-lg font-semibold mb-4">Route Map</h3>
       
+      {/* Scrollable container for wide routes */}
       <div className="overflow-x-auto">
         <svg
           width="100%"
@@ -68,7 +86,7 @@ export const MetroMap = ({ route }: MetroMapProps) => {
           viewBox="0 0 600 200"
           className="min-w-[600px]"
         >
-          {/* Background */}
+          {/* Background gradient */}
           <defs>
             <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.05" />
@@ -78,38 +96,46 @@ export const MetroMap = ({ route }: MetroMapProps) => {
           </defs>
           <rect width="100%" height="100%" fill="url(#bgGradient)" rx="12" />
 
-          {/* Draw route lines */}
-          {mapData.segments.map((seg, i) => (
+          {/* Draw each line segment */}
+          {mapData.segments.map((segment, i) => (
             <path
               key={i}
-              d={seg.path}
+              d={segment.path}
               fill="none"
-              stroke={getLineColor(seg.line)}
+              stroke={getLineColor(segment.line)}
               strokeWidth="4"
               strokeLinecap="round"
               className="animate-route-draw"
-              style={{ strokeDasharray: 1000, animationDelay: `${i * 0.2}s` }}
+              style={{ 
+                strokeDasharray: 1000, 
+                animationDelay: `${i * 0.2}s` 
+              }}
             />
           ))}
 
           {/* Draw station circles */}
           {mapData.points.map((point, i) => {
             const station = getStationById(point.stationId);
-            const isEnd = i === 0 || i === mapData.points.length - 1;
+            const isEndpoint = i === 0 || i === mapData.points.length - 1;
 
             return (
-              <g key={point.stationId} className="animate-station-pop" style={{ animationDelay: `${i * 0.05 + 0.3}s` }}>
+              <g 
+                key={point.stationId} 
+                className="animate-station-pop" 
+                style={{ animationDelay: `${i * 0.05 + 0.3}s` }}
+              >
+                {/* Station circle */}
                 <circle
                   cx={point.x}
                   cy={point.y}
-                  r={isEnd ? 10 : point.isInterchange ? 8 : 6}
-                  fill={isEnd ? getLineColor(point.line) : 'hsl(var(--background))'}
+                  r={isEndpoint ? 10 : point.isInterchange ? 8 : 6}
+                  fill={isEndpoint ? getLineColor(point.line) : 'hsl(var(--background))'}
                   stroke={getLineColor(point.line)}
-                  strokeWidth={isEnd ? 3 : 2}
+                  strokeWidth={isEndpoint ? 3 : 2}
                 />
                 
-                {/* Show name for endpoints and interchanges */}
-                {(isEnd || point.isInterchange) && (
+                {/* Show station name for important stations */}
+                {(isEndpoint || point.isInterchange) && (
                   <text
                     x={point.x}
                     y={point.y + (i % 2 === 0 ? -18 : 28)}
@@ -125,7 +151,7 @@ export const MetroMap = ({ route }: MetroMapProps) => {
         </svg>
       </div>
 
-      {/* Simple legend */}
+      {/* Legend */}
       <div className="flex gap-6 mt-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-primary" />
