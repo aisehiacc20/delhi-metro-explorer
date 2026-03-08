@@ -159,8 +159,11 @@ const Index = () => {
           </div>
         )}
 
-        {/* Line Colors Reference */}
-        <div className="mt-6">
+        {/* Line Colors Reference + Map Button */}
+        <div className="mt-6 space-y-4">
+          <div className="flex justify-center">
+            <MetroMapImage />
+          </div>
           <LineColors />
         </div>
 
